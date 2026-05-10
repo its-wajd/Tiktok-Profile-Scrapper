@@ -307,10 +307,3 @@ This project is for educational, research, and public web data analysis purposes
 Built by **Wajd Dev**  
 GitHub: [@its-wajd](https://github.com/its-wajd)
 
----
-
-## Suggested Repository Name
-
-```txt
-tiktok-profile-intelligence-api
-```
