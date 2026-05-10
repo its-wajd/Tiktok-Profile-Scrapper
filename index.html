@@ -1,0 +1,1048 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TikTok Profile Metadata Viewer | Wajd Dev</title>
+  <meta name="description" content="Fast TikTok profile metadata viewer for public analytics. Enter a username to load profile stats, top video URLs, and video-level metrics through a hosted API endpoint. Built by Wajd Dev.">
+  <meta name="keywords" content="TikTok API, TikTok profile analytics, TikTok metadata, TikTok video URLs, TikTok scraper frontend, Wajd Dev, its-wajd">
+  <meta name="author" content="Wajd Dev (@its-wajd)">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="canonical" href="https://its-wajd.github.io/tiktok-profile-metadata-viewer/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TikTok Profile Metadata Viewer | Wajd Dev">
+  <meta property="og:description" content="Public TikTok profile analytics interface with username-based lookups for profile stats and top videos.">
+  <meta property="og:url" content="https://its-wajd.github.io/tiktok-profile-metadata-viewer/">
+  <meta property="og:site_name" content="TikTok Profile Metadata Viewer">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TikTok Profile Metadata Viewer | Wajd Dev">
+  <meta name="twitter:description" content="Enter a TikTok username and fetch profile metadata + top video links through a hosted endpoint.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "TikTok Profile Metadata Viewer",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Web",
+      "creator": {
+        "@type": "Person",
+        "name": "Wajd Dev",
+        "url": "https://github.com/its-wajd"
+      },
+      "description": "A web interface for fetching public TikTok profile metadata and top video URLs using a hosted API endpoint."
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fbff;
+      --ink: #111827;
+      --muted: #5b667a;
+      --line: #dbe3f0;
+      --link: #1d4ed8;
+      --input-bg: #ffffff;
+      --chip-ink: #22314b;
+      --stat-ink: #0b1220;
+      --status-bg: #f6faff;
+      --status-ink: #1e3a8a;
+      --status-line: #dce7fb;
+      --ok: #15803d;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --shadow-lg: 0 22px 48px rgba(15, 23, 42, 0.13);
+      --shadow-sm: 0 10px 24px rgba(15, 23, 42, 0.08);
+      --radius-lg: 22px;
+      --radius-md: 14px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #060d1b;
+      --surface: #0c1628;
+      --surface-soft: #111e34;
+      --ink: #e5eefc;
+      --muted: #98a9c7;
+      --line: #21314d;
+      --link: #7fb1ff;
+      --input-bg: #0b1424;
+      --chip-ink: #c8d8f3;
+      --stat-ink: #f2f7ff;
+      --status-bg: #0f1f38;
+      --status-ink: #b9d5ff;
+      --status-line: #2a4165;
+      --ok: #49d17f;
+      --warn: #ffcc6a;
+      --bad: #ff8b8b;
+      --shadow-lg: 0 24px 56px rgba(2, 7, 17, 0.62);
+      --shadow-sm: 0 14px 28px rgba(2, 7, 17, 0.48);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(29, 78, 216, 0.12) 0, rgba(29, 78, 216, 0) 34%),
+        radial-gradient(circle at 100% 0%, rgba(6, 182, 212, 0.12) 0, rgba(6, 182, 212, 0) 30%),
+        var(--bg);
+      min-height: 100vh;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 16px 44px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero {
+      padding: 24px;
+      background:
+        linear-gradient(130deg, rgba(15, 23, 42, 0.98), rgba(29, 78, 216, 0.95) 58%, rgba(6, 182, 212, 0.9));
+      color: #e5efff;
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      right: -80px;
+      top: -120px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.23) 0, rgba(255, 255, 255, 0) 72%);
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .brand-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font: 700 30px/1.08 "Sora", sans-serif;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      min-width: 0;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: #d2e4ff;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .hero-meta {
+      margin-top: 12px;
+      color: #d2e4ff;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      opacity: 0.95;
+    }
+
+    .hero-actions {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .hero-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #eef6ff;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 11px;
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      transition: background 0.16s ease, border-color 0.16s ease;
+    }
+
+    .hero-link:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    .theme-toggle {
+      width: auto;
+      min-height: 40px;
+      padding: 9px 12px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.12);
+      color: #ecf5ff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      white-space: nowrap;
+      transition: background 0.16s ease, border-color 0.16s ease;
+    }
+
+    .theme-toggle .icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    .theme-toggle .icon svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.42);
+    }
+
+    .toolbar {
+      padding: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 140px 220px;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input, button {
+      width: 100%;
+      border-radius: 11px;
+      border: 1px solid var(--line);
+      font: 600 14px/1 "Manrope", sans-serif;
+      padding: 12px 12px;
+      min-height: 44px;
+    }
+
+    input {
+      background: var(--input-bg);
+      color: var(--ink);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #7aa2ff;
+      box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.14);
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(130deg, #0f172a, #2563eb);
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.28);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 30px rgba(37, 99, 235, 0.34);
+    }
+
+    .status {
+      margin-top: 10px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--status-line);
+      background: var(--status-bg);
+      color: var(--status-ink);
+      font-size: 13px;
+      font-weight: 600;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status.ok {
+      border-color: #b7e4c7;
+      background: #f1fbf5;
+      color: var(--ok);
+    }
+
+    .status.warn {
+      border-color: #f4cf9b;
+      background: #fff8ef;
+      color: var(--warn);
+    }
+
+    .status.bad {
+      border-color: #f3b7b7;
+      background: #fff5f5;
+      color: var(--bad);
+    }
+
+    .profile-card,
+    .videos-card {
+      padding: 18px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 116px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .avatar {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--surface);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+      background: linear-gradient(130deg, #dbeafe, #ecfeff);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0 0 6px;
+    }
+
+    .title-row h2 {
+      margin: 0;
+      font: 700 28px/1.1 "Sora", sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--chip-ink);
+      text-decoration: none;
+    }
+
+    .bio {
+      margin: 8px 0 10px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .flag {
+      width: 20px;
+      height: 14px;
+      border-radius: 2px;
+      object-fit: cover;
+      border: 1px solid var(--line);
+      flex: 0 0 auto;
+    }
+
+    .stats-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px;
+      background: var(--surface-soft);
+    }
+
+    .stat-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .stat-value {
+      font: 700 24px/1 "Sora", sans-serif;
+      color: var(--stat-ink);
+      letter-spacing: -0.02em;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .section-head h3 {
+      margin: 0;
+      font: 700 22px/1.1 "Sora", sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    .top-links {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: var(--surface-soft);
+      margin-bottom: 12px;
+    }
+
+    .top-links-title {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .top-links ol {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .top-links a,
+    .video-link {
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 700;
+      word-break: break-word;
+      font-size: 12px;
+    }
+
+    .top-links a:hover,
+    .video-link:hover {
+      text-decoration: underline;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .video-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .cover {
+      width: 100%;
+      aspect-ratio: 9 / 12;
+      object-fit: cover;
+      background: linear-gradient(140deg, #dbeafe, #ecfeff);
+      display: block;
+    }
+
+    .cover-fallback {
+      width: 100%;
+      aspect-ratio: 9 / 12;
+      background: linear-gradient(145deg, #dbeafe, #bfdbfe);
+      display: grid;
+      place-items: center;
+      color: #1e3a8a;
+    }
+
+    .video-body {
+      padding: 10px 11px 12px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .desc {
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--ink);
+      min-height: 36px;
+    }
+
+    .inline-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .inline-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      color: var(--muted);
+      font-weight: 700;
+      background: var(--surface-soft);
+    }
+
+    .icon {
+      width: 15px;
+      height: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: currentColor;
+      flex: 0 0 auto;
+    }
+
+    .icon svg {
+      width: 15px;
+      height: 15px;
+      display: block;
+    }
+
+    .footer {
+      padding: 16px 18px;
+      display: grid;
+      gap: 10px;
+      background: var(--surface);
+    }
+
+    .footer-main {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .footer-main strong {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .footer-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 11px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+      background: var(--surface-soft);
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+
+    .footer-link:hover {
+      border-color: #7aa2ff;
+      color: var(--link);
+      background: #eef4ff;
+    }
+
+    @media (max-width: 980px) {
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      .btn-wrap { grid-column: span 2; }
+    }
+
+    @media (max-width: 760px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .btn-wrap { grid-column: span 1; }
+      .profile-grid { grid-template-columns: 1fr; text-align: center; }
+      .avatar { margin: 0 auto; }
+      .meta-row { justify-content: center; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .brand {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .hero-actions {
+        width: 100%;
+      }
+      .hero-link {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+      .footer-main {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="brand">
+        <div class="brand-main">
+          <div class="brand-mark" id="brandMark"></div>
+          <h1>TikTok Metadata API Console</h1>
+        </div>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark and light mode"></button>
+      </div>
+      <p>
+        Professional profile intelligence interface for public TikTok data.
+        Enter a username and render live account metadata plus post-level analytics in one clean view.
+      </p>
+      <div class="hero-meta">Built by Wajd Dev · API-First Open Project</div>
+      <div class="hero-actions">
+        <a class="hero-link" href="https://github.com/its-wajd" target="_blank" rel="noopener" id="githubProfileLink"></a>
+        <a class="hero-link" href="https://github.com/its-wajd?tab=repositories" target="_blank" rel="noopener" id="githubStarLink"></a>
+      </div>
+    </section>
+
+    <section class="card toolbar">
+      <form id="lookupForm" class="form-grid">
+        <label class="field">
+          <span class="label" id="labelUsername"></span>
+          <input id="username" name="username" type="text" placeholder="tiktok" required>
+        </label>
+
+        <label class="field">
+          <span class="label" id="labelLimit"></span>
+          <input id="limit" name="limit" type="number" min="1" max="100" value="10" required>
+        </label>
+
+        <div class="field btn-wrap">
+          <span class="label" id="labelAction"></span>
+          <button class="btn" type="submit" id="fetchButton"></button>
+        </div>
+      </form>
+
+      <div id="status" class="status"></div>
+    </section>
+
+    <section id="profilePanel" class="card profile-card" style="display:none"></section>
+    <section id="videosPanel" class="card videos-card" style="display:none"></section>
+
+    <footer class="card footer">
+      <div class="footer-main">
+        <div>
+          <strong>TikTok Profile Metadata Viewer</strong> by <strong>Wajd Dev (@its-wajd)</strong>
+        </div>
+        <div>© <span id="copyrightYear"></span> Wajd Dev. All rights reserved.</div>
+      </div>
+      <div class="footer-links">
+        <a class="footer-link" href="https://github.com/its-wajd" target="_blank" rel="noopener" id="footerProfileLink"></a>
+        <a class="footer-link" href="https://github.com/its-wajd?tab=repositories" target="_blank" rel="noopener" id="footerReposLink"></a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const ICONS = {
+      brand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v9a3 3 0 0 0 3 3h0a3 3 0 0 0 3-3V6"/><path d="M9 7c1.5 0 3-.4 4.4-1.2L15 5"/><circle cx="12" cy="18" r="3"/></svg>',
+      api: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 20h10"/><path d="M8 8h8M8 12h5"/></svg>',
+      user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>',
+      count: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M7 17V7"/><path d="M12 17V3"/><path d="M17 17v-9"/></svg>',
+      fetch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.4"/><path d="M21 3v6h-6"/><path d="M21 12a9 9 0 0 1-15.5 6.4"/><path d="M3 21v-6h6"/></svg>',
+      followers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      following: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>',
+      likes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 7.6a5 5 0 0 0-7.1 0L12 9.3l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 23l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>',
+      videos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m17 10 4-3v10l-4-3"/></svg>',
+      link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 1 0-7.07-7.07L11 4"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 1 0 7.07 7.07L13 20"/></svg>',
+      clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+      globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>',
+      lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+      unlock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.2-2.4"/></svg>',
+      eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.1 12a10.7 10.7 0 0 1 19.8 0 10.7 10.7 0 0 1-19.8 0"/><circle cx="12" cy="12" r="3"/></svg>',
+      comments: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>',
+      shares: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4"/><path d="m15.4 7  -6.8 4"/></svg>',
+      warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+      success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+      moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>',
+      sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.9 19.1 1.4-1.4"/><path d="m17.7 6.3 1.4-1.4"/></svg>',
+      github: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48 0-.24-.01-1.03-.01-1.87-2.78.6-3.37-1.18-3.37-1.18-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.02 1.53 1.02.9 1.53 2.36 1.09 2.94.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.93 0-1.09.39-1.98 1.02-2.67-.1-.25-.45-1.28.1-2.66 0 0 .84-.27 2.75 1.02A9.57 9.57 0 0 1 12 6.84c.85 0 1.72.11 2.53.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.41.1 2.66.64.69 1.02 1.58 1.02 2.67 0 3.83-2.34 4.68-4.57 4.92.36.31.68.93.68 1.89 0 1.37-.01 2.47-.01 2.81 0 .26.18.58.69.48A10 10 0 0 0 12 2z"/></svg>',
+      star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3z"/></svg>'
+    };
+
+    function icon(name) {
+      return `<span class="icon">${ICONS[name] || ''}</span>`;
+    }
+
+    const form = document.getElementById('lookupForm');
+    const statusEl = document.getElementById('status');
+    const profilePanel = document.getElementById('profilePanel');
+    const videosPanel = document.getElementById('videosPanel');
+    const themeToggle = document.getElementById('themeToggle');
+    const usernameInput = document.getElementById('username');
+    const limitInput = document.getElementById('limit');
+    const fetchButton = document.getElementById('fetchButton');
+    const API_ENDPOINT = (window.TIKTOK_API_ENDPOINT || 'https://dev-the-dark-lord.pantheonsite.io/wp-admin/js/WajdDev/api.php').trim();
+    const THEME_KEY = 'tiktok_console_theme';
+
+    document.getElementById('brandMark').innerHTML = ICONS.brand;
+    document.getElementById('labelUsername').innerHTML = `${icon('user')} Username`;
+    document.getElementById('labelLimit').innerHTML = `${icon('count')} Video Limit`;
+    document.getElementById('labelAction').innerHTML = `${icon('fetch')} Action`;
+    fetchButton.innerHTML = `${icon('fetch')} Fetch Profile Data`;
+    document.getElementById('githubProfileLink').innerHTML = `${icon('github')} @its-wajd on GitHub`;
+    document.getElementById('githubStarLink').innerHTML = `${icon('star')} Star My Projects`;
+    document.getElementById('footerProfileLink').innerHTML = `${icon('github')} GitHub Profile`;
+    document.getElementById('footerReposLink').innerHTML = `${icon('star')} Browse & Star Repositories`;
+    document.getElementById('copyrightYear').textContent = String(new Date().getFullYear());
+
+    function getStoredTheme() {
+      const value = String(localStorage.getItem(THEME_KEY) || '').trim().toLowerCase();
+      return value === 'dark' || value === 'light' ? value : '';
+    }
+
+    function getInitialTheme() {
+      const stored = getStoredTheme();
+      if (stored) return stored;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function renderThemeButton(theme) {
+      const nextLabel = theme === 'dark' ? 'Light mode' : 'Dark mode';
+      const nextIcon = theme === 'dark' ? 'sun' : 'moon';
+      themeToggle.innerHTML = `${icon(nextIcon)} ${nextLabel}`;
+    }
+
+    function applyTheme(theme, persist = true) {
+      const normalized = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', normalized);
+      renderThemeButton(normalized);
+      if (persist) {
+        localStorage.setItem(THEME_KEY, normalized);
+      }
+    }
+
+    applyTheme(getInitialTheme(), false);
+
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      applyTheme(current === 'dark' ? 'light' : 'dark', true);
+    });
+
+    function esc(text) {
+      const span = document.createElement('span');
+      span.textContent = text == null ? '' : String(text);
+      return span.innerHTML;
+    }
+
+    function safeUrl(url) {
+      const v = String(url || '').trim();
+      if (!v) return '#';
+      if (/^https?:\/\//i.test(v)) return v;
+      return '#';
+    }
+
+    function getFlagUrl(region) {
+      const code = String(region || '').trim().toLowerCase();
+      if (!/^[a-z]{2}$/.test(code)) {
+        return '';
+      }
+      return `https://flagcdn.com/w80/${code}.png`;
+    }
+
+    function setStatus(text, type = '') {
+      const cls = ['status'];
+      if (type) cls.push(type);
+      statusEl.className = cls.join(' ');
+
+      const iconName = type === 'ok' ? 'success' : type === 'bad' ? 'warning' : type === 'warn' ? 'warning' : 'api';
+      statusEl.innerHTML = `${icon(iconName)} <span>${esc(text)}</span>`;
+    }
+
+    function renderProfile(data) {
+      const uniqueId = data.unique_id || data.username || '';
+      const verifiedChip = data.verified
+        ? `<span class="chip">${icon('check')} Verified</span>`
+        : `<span class="chip">${icon('check')} Unverified</span>`;
+
+      const visibilityChip = data.private_account
+        ? `<span class="chip">${icon('lock')} Private account</span>`
+        : `<span class="chip">${icon('unlock')} Public account</span>`;
+
+      const flagUrl = getFlagUrl(data.region || '');
+      const regionLabel = `${String(data.region || '').toUpperCase() || 'N/A'}`;
+      const regionChip = flagUrl
+        ? `<span class="chip"><img class="flag" src="${esc(flagUrl)}" alt="${esc(regionLabel)} flag"> ${icon('globe')} ${esc(regionLabel)}</span>`
+        : `<span class="chip">${icon('globe')} ${esc(regionLabel)}</span>`;
+
+      profilePanel.style.display = 'block';
+      profilePanel.innerHTML = `
+        <div class="profile-grid">
+          <img class="avatar" src="${esc(data.profile_pic || '')}" alt="Profile picture">
+
+          <div>
+            <div class="title-row">
+              <h2>${esc(data.nickname || uniqueId || 'Unknown')}</h2>
+              ${verifiedChip}
+            </div>
+
+            <div class="meta-row">
+              <span class="chip">${icon('user')} @${esc(uniqueId)}</span>
+              ${visibilityChip}
+              ${regionChip}
+              <span class="chip">${icon('clock')} ${esc(data.create_time || 'Unknown date')}</span>
+              <span class="chip">${icon('api')} User ID: ${esc(data.user_id || '-')}</span>
+              <a class="chip" href="${esc(safeUrl(data.profile_url))}" target="_blank" rel="noopener">${icon('link')} Open profile</a>
+            </div>
+
+            <p class="bio">${esc(data.bio || 'No bio available')}</p>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-label">${icon('followers')} Followers</div>
+                <div class="stat-value">${esc(data.stats?.followers ?? '0')}</div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-label">${icon('following')} Following</div>
+                <div class="stat-value">${esc(data.stats?.following ?? '0')}</div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-label">${icon('likes')} Likes</div>
+                <div class="stat-value">${esc(data.stats?.likes ?? '0')}</div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-label">${icon('videos')} Videos</div>
+                <div class="stat-value">${esc(String(data.stats?.videos ?? 0))}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderVideos(data) {
+      const videos = Array.isArray(data.videos) ? data.videos : [];
+      const topUrls = Array.isArray(data.top_5_video_urls) ? data.top_5_video_urls : [];
+
+      const topList = topUrls.length
+        ? `<ol>${topUrls.map((u) => `<li><a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${esc(u)}</a></li>`).join('')}</ol>`
+        : `<div class="empty">No video URLs returned for this profile.</div>`;
+
+      const cards = videos.length
+        ? `<div class="video-grid">${videos.map((video) => {
+            const cover = String(video?.video?.cover || video?.video?.dynamic_cover || '').trim();
+            const coverHtml = cover
+              ? `<img class="cover" src="${esc(cover)}" alt="Video cover">`
+              : `<div class="cover-fallback">${icon('videos')}</div>`;
+
+            return `
+              <article class="video-card">
+                ${coverHtml}
+                <div class="video-body">
+                  <a class="video-link" href="${esc(safeUrl(video?.url || '#'))}" target="_blank" rel="noopener">${icon('link')} ${esc(video?.url || 'Video URL')}</a>
+                  <div class="desc">${esc(video?.desc || 'No description available')}</div>
+
+                  <div class="inline-meta">
+                    <span>${icon('eye')} ${esc(String(video?.stats?.views ?? 0))}</span>
+                    <span>${icon('likes')} ${esc(String(video?.stats?.likes ?? 0))}</span>
+                    <span>${icon('comments')} ${esc(String(video?.stats?.comments ?? 0))}</span>
+                    <span>${icon('shares')} ${esc(String(video?.stats?.shares ?? 0))}</span>
+                  </div>
+
+                  <div class="inline-meta">
+                    <span>${icon('api')} ${esc(video?.id || '')}</span>
+                    <span>${icon('clock')} ${esc(video?.created_at || '')}</span>
+                  </div>
+                </div>
+              </article>
+            `;
+          }).join('')}</div>`
+        : `<div class="empty">No videos found for this account in the current fetch result.</div>`;
+
+      videosPanel.style.display = 'block';
+      videosPanel.innerHTML = `
+        <div class="section-head">
+          <h3>${icon('videos')} Video Output (${esc(String(data.videos_found || 0))})</h3>
+          <span class="chip">${icon('api')} Source: ${esc(data.source || 'unknown')}</span>
+        </div>
+
+        <div class="top-links">
+          <div class="top-links-title">${icon('link')} Top Video URLs</div>
+          ${topList}
+        </div>
+
+        ${cards}
+      `;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const username = String(usernameInput.value || '').trim().replace(/^@+/, '');
+      const limit = Math.max(1, Math.min(parseInt(limitInput.value || '10', 10) || 10, 100));
+
+      if (!/^https?:\/\//i.test(API_ENDPOINT)) {
+        setStatus('Set API_ENDPOINT in index.html to your deployed api.php URL before publishing.', 'bad');
+        return;
+      }
+
+      if (!username) {
+        setStatus('Username is required.', 'bad');
+        return;
+      }
+
+      setStatus('Fetching profile and video metadata...', '');
+      profilePanel.style.display = 'none';
+      videosPanel.style.display = 'none';
+
+      try {
+        const body = new URLSearchParams({
+          username,
+          include_videos: '1',
+          video_limit: String(limit)
+        });
+
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        });
+
+        const raw = await response.text();
+
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch (_) {
+          throw new Error(`API returned non-JSON response (HTTP ${response.status}).`);
+        }
+
+        if (!response.ok || !data.success) {
+          throw new Error((data && data.error) ? `${data.error} (HTTP ${response.status})` : `Request failed with HTTP ${response.status}.`);
+        }
+
+        renderProfile(data);
+        renderVideos(data);
+
+        if (Array.isArray(data.errors) && data.errors.length > 0) {
+          const warning = data.errors.slice(0, 2).join(' | ');
+          if ((data.videos_found || 0) === 0) {
+            setStatus(`No live videos returned. ${warning}`, 'warn');
+          } else {
+            setStatus(`Completed with warnings: ${warning}`, 'warn');
+          }
+        } else {
+          setStatus(`Success. Loaded ${data.videos_found} videos from ${data.source}.`, 'ok');
+        }
+      } catch (error) {
+        const message = String(error && error.message ? error.message : 'Unexpected error.');
+
+        if (message.includes('Failed to fetch')) {
+          setStatus(`Failed to reach API endpoint: ${API_ENDPOINT}. Check server status and CORS.`, 'bad');
+        } else {
+          setStatus(message, 'bad');
+        }
+      }
+    });
+
+    if (/^https?:\/\//i.test(API_ENDPOINT)) {
+      setStatus('Ready. Enter a username to fetch profile metadata.', '');
+    } else {
+      setStatus('Set API_ENDPOINT in index.html, then users only need a username.', 'warn');
+    }
+  </script>
+</body>
+</html>
