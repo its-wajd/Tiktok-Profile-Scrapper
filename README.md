@@ -304,6 +304,6 @@ This project is for educational, research, and public web data analysis purposes
 
 ## Author
 
-Built by **Wajd Dev**  
+Built by: **Wajd Dev**  
 GitHub: [@its-wajd](https://github.com/its-wajd)
 
